@@ -41,50 +41,6 @@ npm run build
 npm run preview
 ```
 
-## Nasazení na GitHub Pages
-
-Pro nasazení aplikace na GitHub Pages postupujte následovně:
-
-1. Sestavte aplikaci pro produkci:
-   ```bash
-   npm run build
-   ```
-
-2. Vytvořte novou větev `gh-pages`:
-   ```bash
-   git checkout -b gh-pages
-   ```
-
-3. Přesuňte obsah adresáře `dist` do kořenového adresáře:
-   ```bash
-   cp -r dist/* .
-   ```
-
-4. Přidejte soubory do Gitu:
-   ```bash
-   git add .
-   ```
-
-5. Vytvořte commit:
-   ```bash
-   git commit -m "Deploy to GitHub Pages"
-   ```
-
-6. Nahrajte větev na GitHub:
-   ```bash
-   git push origin gh-pages
-   ```
-
-7. V nastavení repozitáře na GitHubu (Settings > Pages) vyberte větev `gh-pages` jako zdroj pro GitHub Pages.
-
-## Řešení problémů
-
-Pokud se objeví problémy s načítáním obrázků nebo jiných statických souborů:
-
-1. Ujistěte se, že soubory existují ve správných adresářích
-2. Zkontrolujte, že cesty k souborům používají relativní adresy (např. `./images/...`)
-3. Zkontrolujte konfiguraci v souboru `vite.config.ts`
-
 ## Struktura projektu
 
 ```
