@@ -77,4 +77,4 @@ export type AnonymousResult = {
   answers: UserAnswer[];
   results: CalculatorResult[];
   timestamp: number;
-}; 
+}; // force rebuild
