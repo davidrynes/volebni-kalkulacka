@@ -1,0 +1,159 @@
+/* Styly pro QuestionCard a RangeSlider komponenty */
+
+.question-card {
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.question-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.question-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* RangeSlider styly */
+.range-slider-container {
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.range-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  position: relative;
+  height: 24px;
+}
+
+.range-slider-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+  width: 20px;
+}
+
+.range-slider-track {
+  height: 4px;
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+}
+
+.range-slider-thumb {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.range-slider-thumb.selected {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.range-slider-thumb.selected .range-slider-thumb-value {
+  color: white;
+}
+
+.range-slider-thumb:hover,
+.range-slider-thumb:active {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.range-slider-thumb-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.range-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Styly pro tlačítko "Pokračovat" */
+.continue-button-container {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.continue-button {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.continue-button.active {
+  background-color: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.continue-button.active:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.continue-button.disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Responzivní design */
+@media (max-width: 640px) {
+  .question-card {
+    padding: 1.5rem;
+  }
+  
+  .question-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .range-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .range-slider-tick {
+    font-size: 0.7rem;
+  }
+  
+  .continue-button {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+} 
