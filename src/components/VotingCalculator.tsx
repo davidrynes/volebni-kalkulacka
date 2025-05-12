@@ -122,7 +122,14 @@ export function VotingCalculator({ config }: VotingCalculatorProps) {
 
   // Zobrazení výsledků
   if (results) {
-    return <ResultsPage results={results} onReset={resetCalculator} config={config} />;
+    return (
+      <ResultsPage 
+        results={results} 
+        onReset={resetCalculator} 
+        config={config} 
+        userAnswers={userAnswers} 
+      />
+    );
   }
 
   // Zobrazení aktuální otázky

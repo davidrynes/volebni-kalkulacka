@@ -1,12 +1,65 @@
-import { CalculatorResult, CalculatorConfig } from '../types';
+import { useState } from 'preact/hooks';
+import { CalculatorResult, CalculatorConfig, UserAnswer, DemographicData } from '../types';
+import { ResultExport } from './ResultExport';
+import { DemographicSurvey } from './DemographicSurvey';
+import { v4 as uuidv4 } from 'uuid';
+import { dataService } from '../utils/DataService';
 
 interface ResultsPageProps {
   results: CalculatorResult[];
   onReset: () => void;
   config: CalculatorConfig;
+  userAnswers?: UserAnswer[];
 }
 
-export function ResultsPage({ results, onReset, config }: ResultsPageProps) {
+export function ResultsPage({ results, onReset, config, userAnswers = [] }: ResultsPageProps) {
+  const [showDemographicSurvey, setShowDemographicSurvey] = useState(false);
+  const [resultId] = useState(() => uuidv4());
+  
+  const handleStartDemographicSurvey = async () => {
+    // Uložení anonymních výsledků před přechodem na průzkum
+    if (userAnswers.length > 0) {
+      try {
+        await dataService.saveAnonymousResult({
+          id: resultId,
+          answers: userAnswers,
+          results,
+          timestamp: Date.now()
+        });
+      } catch (error) {
+        console.error('Chyba při ukládání anonymních výsledků:', error);
+      }
+    }
+    
+    setShowDemographicSurvey(true);
+  };
+  
+  const handleDemographicDataSubmit = async (data: DemographicData) => {
+    try {
+      await dataService.saveDemographicData(data);
+      // Po úspěšném odeslání se vrátíme zpět na výsledky
+      setShowDemographicSurvey(false);
+      
+      // Zobrazit poděkování
+      alert('Děkujeme za vyplnění průzkumu!');
+    } catch (error) {
+      console.error('Chyba při ukládání demografických dat:', error);
+      alert('Při ukládání dat došlo k chybě. Zkuste to prosím znovu.');
+    }
+  };
+  
+  // Pokud jsme v demografickém průzkumu, zobrazíme příslušnou komponentu
+  if (showDemographicSurvey) {
+    return (
+      <DemographicSurvey
+        parties={config.parties}
+        resultsId={resultId}
+        onSubmit={handleDemographicDataSubmit}
+        onBack={() => setShowDemographicSurvey(false)}
+      />
+    );
+  }
+  
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md min-h-[600px] flex flex-col">
       <div className="h-[100px] flex flex-col justify-center">
@@ -31,6 +84,10 @@ export function ResultsPage({ results, onReset, config }: ResultsPageProps) {
                       src={`images/party-logos/${result.partyId}.svg`}
                       alt={`Logo ${result.partyName}`}
                       className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback na výchozí logo, pokud konkrétní logo neexistuje
+                        e.currentTarget.src = 'images/party-logos/default.svg';
+                      }}
                     />
                   </div>
                 </div>
@@ -63,12 +120,22 @@ export function ResultsPage({ results, onReset, config }: ResultsPageProps) {
         ))}
       </div>
       
-      <div className="mt-8 text-center">
+      {/* Export výsledků jako obrázek */}
+      <ResultExport results={results} title={config.title || 'Volební kalkulačka 2025'} />
+      
+      <div className="mt-8 flex justify-center space-x-4">
         <button
           onClick={onReset}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
         >
           Začít znovu
+        </button>
+        
+        <button
+          onClick={handleStartDemographicSurvey}
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Demografický průzkum
         </button>
       </div>
     </div>
