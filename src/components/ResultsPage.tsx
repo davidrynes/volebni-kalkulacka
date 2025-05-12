@@ -68,7 +68,7 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
       // Vytvoříme strukturu HTML s přesným stylováním odpovídajícím UI
       let exportHTML = `
         <div style="width: 100%; height: 100%; background-color: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <div style="margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6;">
+          <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6;">
             <h1 style="font-size: 38px; font-weight: 700; margin-bottom: 15px; color: #000; text-align: center;">Výsledky</h1>
             <p style="color: #4b5563; font-size: 18px; line-height: 1.4; text-align: center; margin: 0 auto;">
               Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
@@ -86,17 +86,15 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
         const progressBarColor = result.color || '#3B82F6';
         
         exportHTML += `
-          <div style="margin-bottom: 20px; position: relative; background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-            <div style="padding: 15px;">
+          <div style="margin-bottom: 15px; position: relative; background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 15px 20px;">
               <div style="display: flex; align-items: flex-start;">
-                <div style="width: 100px; min-width: 100px; margin-right: 15px;">
-                  <div style="border: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 5px; width: 100%; height: 90px; display: flex; justify-content: center; align-items: center; padding: 10px;">
-                    <img 
-                      src="${logoSrc}" 
-                      onerror="this.onerror=null; this.src='${defaultLogo}';" 
-                      style="max-width: 80%; max-height: 80%; object-fit: contain;"
-                    />
-                  </div>
+                <div style="width: 75px; min-width: 75px; margin-right: 15px; display: flex; align-items: center; justify-content: center; background-color: #f9fafb; border-radius: 4px;">
+                  <img 
+                    src="${logoSrc}" 
+                    onerror="this.onerror=null; this.src='${defaultLogo}';" 
+                    style="max-width: 70px; max-height: 70px; object-fit: contain;"
+                  />
                 </div>
                 <div style="flex-grow: 1; display: flex; justify-content: space-between; align-items: center; width: 100%;">
                   <div style="flex-grow: 1;">
@@ -105,14 +103,14 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
                       ${result.description || `${result.partyName} je politická strana`}
                     </div>
                   </div>
-                  <div style="text-align: right; padding-left: 15px; width: 100px; min-width: 100px;">
+                  <div style="text-align: right; padding-left: 15px; min-width: 100px;">
                     <div style="font-size: 36px; font-weight: bold; color: #111;">${result.matchPercentage}%</div>
                     <div style="font-size: 16px; color: #6b7280;">shoda</div>
                   </div>
                 </div>
               </div>
             </div>
-            <div style="height: 12px; width: 100%; background-color: #e5e7eb; margin-top: 5px;">
+            <div style="height: 10px; width: 100%; background-color: #e5e7eb;">
               <div style="height: 100%; width: ${result.matchPercentage}%; background-color: ${progressBarColor};"></div>
             </div>
           </div>
@@ -122,7 +120,7 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
       // Přidáme copyright footer
       exportHTML += `
           </div>
-          <div style="text-align: center; padding-top: 15px; margin-top: 20px; border-top: 1px solid #e5e7eb;">
+          <div style="text-align: center; padding-top: 15px; margin-top: 10px; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 14px; margin: 0;">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
           </div>
         </div>
