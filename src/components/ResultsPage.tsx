@@ -55,41 +55,68 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
     if (!exportRef.current) return;
     
     try {
-      // Vytvoříme div s přesnou kopií vzhledu výsledkové stránky
+      // Vytvoříme nový element pro export, který bude přesnou kopií UI
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '-9999px';
-      container.style.width = '600px';
+      container.style.width = '560px';
       container.style.backgroundColor = '#ffffff';
       container.style.padding = '20px';
       container.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      container.style.boxSizing = 'border-box';
       
       // Kopírujeme obsah výsledkové stránky
       const clone = exportRef.current.cloneNode(true) as HTMLElement;
       
-      // Odstraníme tlačítka a přidáme copyright footer
+      // Odstraníme tlačítka 
       const buttons = clone.querySelector('.result-buttons');
       if (buttons) {
         buttons.remove();
       }
       
+      // Přidáme copyright footer
       const footer = document.createElement('div');
       footer.className = 'text-center mt-4 mb-2';
-      footer.innerHTML = '<p class="text-xs text-gray-500">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>';
+      footer.innerHTML = '<p class="text-xs text-gray-500" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #f1f1f1;">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>';
       clone.appendChild(footer);
       
       container.appendChild(clone);
       document.body.appendChild(container);
       
-      // Upravíme styly pro export
-      Array.from(container.querySelectorAll('.result-item')).forEach(item => {
-        (item as HTMLElement).style.marginBottom = '16px';
+      // Upravíme styly pro export - odstraníme šedá ohraničení a upravíme styl
+      Array.from(container.querySelectorAll('.result-item')).forEach((item, index) => {
+        const element = item as HTMLElement;
+        element.style.marginBottom = '14px';
+        element.style.border = 'none';
+        element.style.padding = '8px 0';
+        element.style.backgroundColor = 'transparent';
+        
+        // Odstraníme hover efekt
+        element.classList.remove('hover:bg-gray-50');
+        
+        // Upravíme styl progress baru
+        const progressBar = element.querySelector('.progress-bar-bg');
+        if (progressBar) {
+          (progressBar as HTMLElement).style.backgroundColor = '#f1f1f1';
+        }
+        
+        // Upravíme mezery mezi elementy
+        const resultContent = element.querySelector('.result-content');
+        if (resultContent) {
+          (resultContent as HTMLElement).style.marginBottom = '8px';
+        }
       });
+      
+      // Přidáme ohraničení celému exportu
+      container.style.border = '1px solid #eaeaea';
+      container.style.borderRadius = '8px';
       
       const dataUrl = await domtoimage.toPng(container, {
         quality: 1.0,
-        bgcolor: '#ffffff'
+        bgcolor: '#ffffff',
+        width: container.offsetWidth,
+        height: container.offsetHeight
       });
       
       // Odstraníme dočasný kontejner
@@ -138,7 +165,7 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
               key={result.partyId} 
               className="result-item border rounded-lg p-4 transition-colors hover:bg-gray-50"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between result-content">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 relative">
@@ -169,7 +196,7 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
                 </div>
               </div>
               
-              <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
+              <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5 progress-bar-bg">
                 <div 
                   className="h-2.5 rounded-full" 
                   style={{ 
