@@ -56,15 +56,22 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
     
     try {
       // Nastavíme exportovací styl pro maximální podobnost s příkladem
-      const originalStyle = exportRef.current.style.cssText;
-      exportRef.current.style.backgroundColor = '#ffffff';
-      exportRef.current.style.padding = '20px';
-      exportRef.current.style.borderRadius = '8px';
-      exportRef.current.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-      exportRef.current.style.maxWidth = '580px';
-      exportRef.current.style.width = '100%';
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      container.style.width = '560px';
+      container.style.backgroundColor = '#ffffff';
+      container.style.padding = '20px';
+      container.style.borderRadius = '10px';
+      container.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
       
-      const dataUrl = await domtoimage.toPng(exportRef.current, {
+      // Klonujeme prvek pro export, aby se nezobrazil v UI
+      const clone = exportRef.current.cloneNode(true) as HTMLElement;
+      container.appendChild(clone);
+      document.body.appendChild(container);
+      
+      const dataUrl = await domtoimage.toPng(container, {
         quality: 1.0,
         bgcolor: '#ffffff',
         style: {
@@ -73,8 +80,8 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
         }
       });
       
-      // Obnovíme původní styl
-      exportRef.current.style.cssText = originalStyle;
+      // Odstraníme dočasný kontejner
+      document.body.removeChild(container);
       
       // Stáhneme obrázek
       const downloadLink = document.createElement('a');
@@ -103,77 +110,75 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
   
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md min-h-[600px] flex flex-col">
-      <div>
-        <div className="h-[100px] flex flex-col justify-center">
-          <h1 className="text-2xl font-bold text-center">Výsledky</h1>
-          
-          <p className="text-gray-600 text-center h-[40px] flex items-center justify-center">
-            Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
-          </p>
-        </div>
+      <div className="h-[100px] flex flex-col justify-center">
+        <h1 className="text-2xl font-bold text-center">Výsledky</h1>
+        
+        <p className="text-gray-600 text-center h-[40px] flex items-center justify-center">
+          Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
+        </p>
       </div>
       
-      {/* Tento div bude exportován - obsahuje pouze výsledky s čistým designem */}
-      <div ref={exportRef} className="space-y-4 flex-grow overflow-auto bg-white px-2">
-        <div className="text-center mb-2">
-          <h2 className="text-xl font-bold text-gray-800">Výsledky</h2>
-          <p className="text-sm text-gray-600">
-            Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
-          </p>
-        </div>
-        
-        {results.slice(0, 5).map((result, index) => (
-          <div 
-            key={result.partyId} 
-            className="mb-4 last:mb-1"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 mr-3">
+      {/* Skrytý div pro export - neviditelný v UI, ale používá se pro export */}
+      <div className="hidden">
+        <div ref={exportRef} className="bg-white" style="width: 520px;">
+          <div className="text-center mb-3">
+            <h2 className="text-2xl font-bold text-gray-800">Výsledky</h2>
+            <p className="text-sm text-gray-600">
+              Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
+            </p>
+          </div>
+          
+          {results.slice(0, 5).map((result, index) => (
+            <div key={result.partyId} className="mb-3 last:mb-1">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mr-2 w-8 h-8">
                   <img 
                     src={`images/party-logos/${result.partyId}.svg`}
                     alt={`Logo ${result.partyName}`}
-                    className="w-10 h-10 object-contain"
+                    className="w-full h-full object-contain"
                     onError={(e) => {
                       e.currentTarget.src = 'images/party-logos/default.svg';
                     }}
                   />
                 </div>
-                <div>
-                  <div className="font-medium">{index + 1}. {result.partyName}</div>
-                  <div className="text-xs text-gray-600 line-clamp-1">
-                    {result.description || `${result.partyName} je politická strana`}
+                <div className="flex-grow">
+                  <div className="flex justify-between mb-1">
+                    <div>
+                      <div className="font-medium">{index + 1}. {result.partyName}</div>
+                      <div className="text-xs text-gray-600 line-clamp-1 max-w-[280px]">
+                        {result.description || `${result.partyName} je politická strana`}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold">
+                        {result.matchPercentage}%
+                      </span>
+                      <div className="text-xs text-gray-500">shoda</div>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
+                    <div 
+                      className="h-full" 
+                      style={{ 
+                        width: `${result.matchPercentage}%`,
+                        backgroundColor: result.color || '#3B82F6'
+                      }}
+                    ></div>
                   </div>
                 </div>
               </div>
-              
-              <div className="text-right">
-                <span className="text-2xl font-bold">
-                  {result.matchPercentage}%
-                </span>
-                <div className="text-xs text-gray-500">shoda</div>
-              </div>
             </div>
-            
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
-              <div 
-                className="h-full" 
-                style={{ 
-                  width: `${result.matchPercentage}%`,
-                  backgroundColor: result.color || '#3B82F6'
-                }}
-              ></div>
-            </div>
+          ))}
+          
+          <div className="text-center mt-4 pt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-500">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
           </div>
-        ))}
-        
-        <div className="text-center mt-4 pt-2 border-t border-gray-100">
-          <p className="text-xs text-gray-500">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
         </div>
       </div>
       
-      {/* Seznam všech výsledků - zobrazuje se v UI, ale neexportuje se jako obrázek */}
-      <div className="space-y-4 flex-grow overflow-auto mt-6">
+      {/* Seznam všech výsledků - viditelný v UI */}
+      <div className="space-y-4 flex-grow overflow-auto">
         {results.map((result, index) => (
           <div 
             key={result.partyId} 
