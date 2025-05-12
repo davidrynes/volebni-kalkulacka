@@ -52,71 +52,93 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
   };
   
   const handleExportImage = async () => {
-    if (!exportRef.current) return;
-    
     try {
-      // Vytvoříme nový element pro export, který bude přesnou kopií UI
+      // Vytvoříme zcela nový kontejner od základu
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '-9999px';
-      container.style.width = '560px';
+      container.style.width = '550px';
       container.style.backgroundColor = '#ffffff';
-      container.style.padding = '20px';
+      container.style.padding = '30px';
       container.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
       container.style.boxSizing = 'border-box';
+      container.style.borderRadius = '0px';
       
-      // Kopírujeme obsah výsledkové stránky
-      const clone = exportRef.current.cloneNode(true) as HTMLElement;
+      // Vytvoříme zcela novou strukturu pro export
+      let exportHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">Výsledky</h1>
+          <p style="color: #666; font-size: 14px; margin: 0;">Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.</p>
+        </div>
+      `;
       
-      // Odstraníme tlačítka 
-      const buttons = clone.querySelector('.result-buttons');
-      if (buttons) {
-        buttons.remove();
-      }
-      
-      // Přidáme copyright footer
-      const footer = document.createElement('div');
-      footer.className = 'text-center mt-4 mb-2';
-      footer.innerHTML = '<p class="text-xs text-gray-500" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #f1f1f1;">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>';
-      clone.appendChild(footer);
-      
-      container.appendChild(clone);
-      document.body.appendChild(container);
-      
-      // Upravíme styly pro export - odstraníme šedá ohraničení a upravíme styl
-      Array.from(container.querySelectorAll('.result-item')).forEach((item, index) => {
-        const element = item as HTMLElement;
-        element.style.marginBottom = '14px';
-        element.style.border = 'none';
-        element.style.padding = '8px 0';
-        element.style.backgroundColor = 'transparent';
+      // Přidáme prvních 5 výsledků s čistým stylem
+      const topResults = results.slice(0, 5);
+      topResults.forEach((result, index) => {
+        const logoSrc = `images/party-logos/${result.partyId}.svg`;
+        const defaultLogo = 'images/party-logos/default.svg';
+        const progressBarColor = result.color || '#3B82F6';
         
-        // Odstraníme hover efekt
-        element.classList.remove('hover:bg-gray-50');
-        
-        // Upravíme styl progress baru
-        const progressBar = element.querySelector('.progress-bar-bg');
-        if (progressBar) {
-          (progressBar as HTMLElement).style.backgroundColor = '#f1f1f1';
-        }
-        
-        // Upravíme mezery mezi elementy
-        const resultContent = element.querySelector('.result-content');
-        if (resultContent) {
-          (resultContent as HTMLElement).style.marginBottom = '8px';
-        }
+        exportHTML += `
+          <div style="margin-bottom: ${index < 4 ? '20px' : '10px'}; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center;">
+                <div style="width: 40px; height: 40px; margin-right: 12px; display: flex; justify-content: center; align-items: center;">
+                  <img 
+                    src="${logoSrc}" 
+                    onerror="this.onerror=null; this.src='${defaultLogo}';" 
+                    style="max-width: 100%; max-height: 100%;"
+                  />
+                </div>
+                <div>
+                  <div style="font-weight: 500; font-size: 16px; color: #333;">${index + 1}. ${result.partyName}</div>
+                  <div style="font-size: 12px; color: #666; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${result.description || `${result.partyName} je politická strana`}
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 22px; font-weight: bold; color: #333;">${result.matchPercentage}%</div>
+                <div style="font-size: 12px; color: #777;">shoda</div>
+              </div>
+            </div>
+            <div style="height: 10px; width: 100%; background-color: #f0f0f0; border-radius: 5px; overflow: hidden;">
+              <div style="height: 100%; width: ${result.matchPercentage}%; background-color: ${progressBarColor}; border-radius: 5px;"></div>
+            </div>
+          </div>
+        `;
       });
       
-      // Přidáme ohraničení celému exportu
-      container.style.border = '1px solid #eaeaea';
-      container.style.borderRadius = '8px';
+      // Přidáme copyright
+      exportHTML += `
+        <div style="text-align: center; margin-top: 24px; padding-top: 8px; border-top: 1px solid #eaeaea;">
+          <p style="color: #999; font-size: 11px; margin: 0;">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
+        </div>
+      `;
       
+      container.innerHTML = exportHTML;
+      document.body.appendChild(container);
+      
+      // Zkontrolujeme, že obrázky jsou načtené před exportem
+      const images = container.querySelectorAll('img');
+      const imagePromises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve; // Použijeme výchozí obrázek při chybě
+        });
+      });
+      
+      await Promise.all(imagePromises);
+      
+      // Vytvoříme obrázek s vysokou kvalitou
       const dataUrl = await domtoimage.toPng(container, {
         quality: 1.0,
         bgcolor: '#ffffff',
-        width: container.offsetWidth,
-        height: container.offsetHeight
+        style: {
+          transform: 'scale(1.0)'
+        }
       });
       
       // Odstraníme dočasný kontejner
