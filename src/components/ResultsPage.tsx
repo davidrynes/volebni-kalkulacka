@@ -14,6 +14,7 @@ interface ResultsPageProps {
 
 export function ResultsPage({ results, onReset, config, userAnswers = [] }: ResultsPageProps) {
   const [showDemographicSurvey, setShowDemographicSurvey] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const [resultId] = useState(() => uuidv4());
   
   const handleStartDemographicSurvey = async () => {
@@ -120,8 +121,8 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
         ))}
       </div>
       
-      {/* Export výsledků jako obrázek */}
-      <ResultExport results={results} title={config.title || 'Volební kalkulačka 2025'} />
+      {/* Export výsledků jako obrázek - zobrazí se jen když je showExport true */}
+      {showExport && <ResultExport results={results} title={config.title || 'Volební kalkulačka 2025'} />}
       
       <div className="mt-8 flex justify-center space-x-4">
         <button
@@ -129,6 +130,13 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
           className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
         >
           Začít znovu
+        </button>
+        
+        <button
+          onClick={() => setShowExport(!showExport)}
+          className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        >
+          {showExport ? 'Skrýt export' : 'Exportovat jako obrázek'}
         </button>
         
         <button

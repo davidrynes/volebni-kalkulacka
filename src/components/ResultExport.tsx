@@ -1,5 +1,5 @@
 import { useRef } from 'preact/hooks';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 import { CalculatorResult } from '../types';
 
 interface ResultExportProps {
@@ -14,19 +14,20 @@ export function ResultExport({ results, title = 'Moje výsledky volební kalkula
     if (!exportRef.current) return;
     
     try {
-      const canvas = await html2canvas(exportRef.current, {
-        scale: 2,  // Zvýšení kvality exportu
-        useCORS: true,  // Povolení cross-origin obrázků
-        backgroundColor: '#ffffff',
-        logging: false
+      const dataUrl = await domtoimage.toPng(exportRef.current, {
+        quality: 0.95,
+        bgcolor: '#ffffff',
+        width: exportRef.current.offsetWidth,
+        height: exportRef.current.offsetHeight,
+        style: {
+          margin: 0,
+          padding: 0
+        }
       });
-      
-      // Konverze canvas na obrázek
-      const image = canvas.toDataURL('image/png');
       
       // Vytvoření odkazu pro stažení
       const downloadLink = document.createElement('a');
-      downloadLink.href = image;
+      downloadLink.href = dataUrl;
       downloadLink.download = 'volebni-kalkulacka-vysledky.png';
       
       // Simulace kliknutí pro stažení
