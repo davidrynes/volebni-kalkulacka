@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.7.0",
+    "@types/node": "^22.15.17",
     "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",

@@ -38,4 +38,43 @@ export type CalculatorResult = {
   matchPercentage: number;
   color?: string;
   description?: string;
+};
+
+// Nové typy pro demografický průzkum a ukládání dat
+export type Gender = 'male' | 'female' | 'other' | 'prefer_not_to_say';
+
+export type Education =
+  | 'elementary'
+  | 'vocational'
+  | 'high_school'
+  | 'college'
+  | 'university_bachelor'
+  | 'university_master'
+  | 'university_doctoral';
+
+export type AgeGroup = '18-24' | '25-34' | '35-44' | '45-54' | '55-64' | '65+';
+
+export type Region = string;
+
+export type District = string;
+
+export type DemographicData = {
+  id: string;
+  age?: AgeGroup;
+  gender?: Gender;
+  education?: Education;
+  region?: Region;
+  district?: string;
+  profession?: string;
+  electionPreference?: string;
+  email?: string;
+  agreedToTerms: boolean;
+  timestamp: number;
+};
+
+export type AnonymousResult = {
+  id: string;
+  answers: UserAnswer[];
+  results: CalculatorResult[];
+  timestamp: number;
 }; 
