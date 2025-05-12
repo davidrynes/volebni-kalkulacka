@@ -55,17 +55,28 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
     if (!exportRef.current) return;
     
     try {
+      // Nastavíme exportovací styl pro maximální podobnost s příkladem
+      const originalStyle = exportRef.current.style.cssText;
+      exportRef.current.style.backgroundColor = '#ffffff';
+      exportRef.current.style.padding = '20px';
+      exportRef.current.style.borderRadius = '8px';
+      exportRef.current.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+      exportRef.current.style.maxWidth = '580px';
+      exportRef.current.style.width = '100%';
+      
       const dataUrl = await domtoimage.toPng(exportRef.current, {
         quality: 1.0,
         bgcolor: '#ffffff',
-        width: exportRef.current.offsetWidth,
-        height: exportRef.current.offsetHeight,
         style: {
           margin: 0,
           padding: 0
         }
       });
       
+      // Obnovíme původní styl
+      exportRef.current.style.cssText = originalStyle;
+      
+      // Stáhneme obrázek
       const downloadLink = document.createElement('a');
       downloadLink.href = dataUrl;
       downloadLink.download = 'volebni-kalkulacka-vysledky.png';
@@ -92,7 +103,7 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
   
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md min-h-[600px] flex flex-col">
-      <div ref={exportRef}>
+      <div>
         <div className="h-[100px] flex flex-col justify-center">
           <h1 className="text-2xl font-bold text-center">Výsledky</h1>
           
@@ -100,60 +111,116 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
             Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
           </p>
         </div>
+      </div>
+      
+      {/* Tento div bude exportován - obsahuje pouze výsledky s čistým designem */}
+      <div ref={exportRef} className="space-y-4 flex-grow overflow-auto bg-white px-2">
+        <div className="text-center mb-2">
+          <h2 className="text-xl font-bold text-gray-800">Výsledky</h2>
+          <p className="text-sm text-gray-600">
+            Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
+          </p>
+        </div>
         
-        <div className="space-y-4 flex-grow overflow-auto">
-          {results.map((result, index) => (
-            <div 
-              key={result.partyId} 
-              className="border rounded-lg p-4 transition-colors hover:bg-gray-50"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 relative">
-                      <img 
-                        src={`images/party-logos/${result.partyId}.svg`}
-                        alt={`Logo ${result.partyName}`}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          // Fallback na výchozí logo, pokud konkrétní logo neexistuje
-                          e.currentTarget.src = 'images/party-logos/default.svg';
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">{index + 1}. {result.partyName}</h3>
-                    {result.description && (
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.description}</p>
-                    )}
-                  </div>
+        {results.slice(0, 5).map((result, index) => (
+          <div 
+            key={result.partyId} 
+            className="mb-4 last:mb-1"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 mr-3">
+                  <img 
+                    src={`images/party-logos/${result.partyId}.svg`}
+                    alt={`Logo ${result.partyName}`}
+                    className="w-10 h-10 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.src = 'images/party-logos/default.svg';
+                    }}
+                  />
                 </div>
-                
-                <div className="text-right">
-                  <span className="text-2xl font-bold">
-                    {result.matchPercentage}%
-                  </span>
-                  <div className="text-sm text-gray-500">shoda</div>
+                <div>
+                  <div className="font-medium">{index + 1}. {result.partyName}</div>
+                  <div className="text-xs text-gray-600 line-clamp-1">
+                    {result.description || `${result.partyName} je politická strana`}
+                  </div>
                 </div>
               </div>
               
-              <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="h-2.5 rounded-full" 
-                  style={{ 
-                    width: `${result.matchPercentage}%`,
-                    backgroundColor: result.color || '#3B82F6'
-                  }}
-                ></div>
+              <div className="text-right">
+                <span className="text-2xl font-bold">
+                  {result.matchPercentage}%
+                </span>
+                <div className="text-xs text-gray-500">shoda</div>
               </div>
             </div>
-          ))}
-          
-          <div className="text-center mt-4 mb-4 text-xs text-gray-500 pt-2 border-t border-gray-100">
-            <p>Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
+            
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
+              <div 
+                className="h-full" 
+                style={{ 
+                  width: `${result.matchPercentage}%`,
+                  backgroundColor: result.color || '#3B82F6'
+                }}
+              ></div>
+            </div>
           </div>
+        ))}
+        
+        <div className="text-center mt-4 pt-2 border-t border-gray-100">
+          <p className="text-xs text-gray-500">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
         </div>
+      </div>
+      
+      {/* Seznam všech výsledků - zobrazuje se v UI, ale neexportuje se jako obrázek */}
+      <div className="space-y-4 flex-grow overflow-auto mt-6">
+        {results.map((result, index) => (
+          <div 
+            key={result.partyId} 
+            className="border rounded-lg p-4 transition-colors hover:bg-gray-50"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 relative">
+                    <img 
+                      src={`images/party-logos/${result.partyId}.svg`}
+                      alt={`Logo ${result.partyName}`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback na výchozí logo, pokud konkrétní logo neexistuje
+                        e.currentTarget.src = 'images/party-logos/default.svg';
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">{index + 1}. {result.partyName}</h3>
+                  {result.description && (
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.description}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-right">
+                <span className="text-2xl font-bold">
+                  {result.matchPercentage}%
+                </span>
+                <div className="text-sm text-gray-500">shoda</div>
+              </div>
+            </div>
+            
+            <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="h-2.5 rounded-full" 
+                style={{ 
+                  width: `${result.matchPercentage}%`,
+                  backgroundColor: result.color || '#3B82F6'
+                }}
+              ></div>
+            </div>
+          </div>
+        ))}
       </div>
       
       <div className="mt-8 flex justify-center space-x-4">
