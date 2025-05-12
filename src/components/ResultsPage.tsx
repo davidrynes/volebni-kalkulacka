@@ -4,6 +4,8 @@ import { ResultExport } from './ResultExport';
 import { DemographicSurvey } from './DemographicSurvey';
 import { v4 as uuidv4 } from 'uuid';
 import { dataService } from '../utils/DataService';
+import domtoimage from 'dom-to-image-more';
+import { useRef } from 'preact/hooks';
 
 interface ResultsPageProps {
   results: CalculatorResult[];
@@ -14,8 +16,8 @@ interface ResultsPageProps {
 
 export function ResultsPage({ results, onReset, config, userAnswers = [] }: ResultsPageProps) {
   const [showDemographicSurvey, setShowDemographicSurvey] = useState(false);
-  const [showExport, setShowExport] = useState(false);
   const [resultId] = useState(() => uuidv4());
+  const exportRef = useRef<HTMLDivElement>(null);
   
   const handleStartDemographicSurvey = async () => {
     // Uložení anonymních výsledků před přechodem na průzkum
@@ -49,6 +51,33 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
     }
   };
   
+  const handleExportImage = async () => {
+    if (!exportRef.current) return;
+    
+    try {
+      const dataUrl = await domtoimage.toPng(exportRef.current, {
+        quality: 1.0,
+        bgcolor: '#ffffff',
+        width: exportRef.current.offsetWidth,
+        height: exportRef.current.offsetHeight,
+        style: {
+          margin: 0,
+          padding: 0
+        }
+      });
+      
+      const downloadLink = document.createElement('a');
+      downloadLink.href = dataUrl;
+      downloadLink.download = 'volebni-kalkulacka-vysledky.png';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } catch (error) {
+      console.error('Chyba při exportu výsledků:', error);
+      alert('Nepodařilo se exportovat výsledky. Zkuste to prosím znovu.');
+    }
+  };
+  
   // Pokud jsme v demografickém průzkumu, zobrazíme příslušnou komponentu
   if (showDemographicSurvey) {
     return (
@@ -63,66 +92,69 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
   
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md min-h-[600px] flex flex-col">
-      <div className="h-[100px] flex flex-col justify-center">
-        <h1 className="text-2xl font-bold text-center">Výsledky</h1>
+      <div ref={exportRef}>
+        <div className="h-[100px] flex flex-col justify-center">
+          <h1 className="text-2xl font-bold text-center">Výsledky</h1>
+          
+          <p className="text-gray-600 text-center h-[40px] flex items-center justify-center">
+            Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
+          </p>
+        </div>
         
-        <p className="text-gray-600 text-center h-[40px] flex items-center justify-center">
-          Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
-        </p>
-      </div>
-      
-      <div className="space-y-4 flex-grow overflow-auto">
-        {results.map((result, index) => (
-          <div 
-            key={result.partyId} 
-            className="border rounded-lg p-4 transition-colors hover:bg-gray-50"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 relative">
-                    <img 
-                      src={`images/party-logos/${result.partyId}.svg`}
-                      alt={`Logo ${result.partyName}`}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        // Fallback na výchozí logo, pokud konkrétní logo neexistuje
-                        e.currentTarget.src = 'images/party-logos/default.svg';
-                      }}
-                    />
+        <div className="space-y-4 flex-grow overflow-auto">
+          {results.map((result, index) => (
+            <div 
+              key={result.partyId} 
+              className="border rounded-lg p-4 transition-colors hover:bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 relative">
+                      <img 
+                        src={`images/party-logos/${result.partyId}.svg`}
+                        alt={`Logo ${result.partyName}`}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          // Fallback na výchozí logo, pokud konkrétní logo neexistuje
+                          e.currentTarget.src = 'images/party-logos/default.svg';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{index + 1}. {result.partyName}</h3>
+                    {result.description && (
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.description}</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{index + 1}. {result.partyName}</h3>
-                  {result.description && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.description}</p>
-                  )}
+                
+                <div className="text-right">
+                  <span className="text-2xl font-bold">
+                    {result.matchPercentage}%
+                  </span>
+                  <div className="text-sm text-gray-500">shoda</div>
                 </div>
               </div>
               
-              <div className="text-right">
-                <span className="text-2xl font-bold">
-                  {result.matchPercentage}%
-                </span>
-                <div className="text-sm text-gray-500">shoda</div>
+              <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="h-2.5 rounded-full" 
+                  style={{ 
+                    width: `${result.matchPercentage}%`,
+                    backgroundColor: result.color || '#3B82F6'
+                  }}
+                ></div>
               </div>
             </div>
-            
-            <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="h-2.5 rounded-full" 
-                style={{ 
-                  width: `${result.matchPercentage}%`,
-                  backgroundColor: result.color || '#3B82F6'
-                }}
-              ></div>
-            </div>
+          ))}
+          
+          <div className="text-center mt-4 mb-4 text-xs text-gray-500 pt-2 border-t border-gray-100">
+            <p>Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
           </div>
-        ))}
+        </div>
       </div>
-      
-      {/* Export výsledků jako obrázek - zobrazí se jen když je showExport true */}
-      {showExport && <ResultExport results={results} title={config.title || 'Volební kalkulačka 2025'} />}
       
       <div className="mt-8 flex justify-center space-x-4">
         <button
@@ -133,10 +165,10 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
         </button>
         
         <button
-          onClick={() => setShowExport(!showExport)}
+          onClick={handleExportImage}
           className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
         >
-          {showExport ? 'Skrýt export' : 'Exportovat jako obrázek'}
+          Exportovat jako obrázek
         </button>
         
         <button
