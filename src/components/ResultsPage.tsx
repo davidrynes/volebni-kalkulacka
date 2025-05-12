@@ -55,29 +55,41 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
     if (!exportRef.current) return;
     
     try {
-      // Nastavíme exportovací styl pro maximální podobnost s příkladem
+      // Vytvoříme div s přesnou kopií vzhledu výsledkové stránky
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '-9999px';
-      container.style.width = '560px';
+      container.style.width = '600px';
       container.style.backgroundColor = '#ffffff';
       container.style.padding = '20px';
-      container.style.borderRadius = '10px';
-      container.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.1)';
+      container.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
       
-      // Klonujeme prvek pro export, aby se nezobrazil v UI
+      // Kopírujeme obsah výsledkové stránky
       const clone = exportRef.current.cloneNode(true) as HTMLElement;
+      
+      // Odstraníme tlačítka a přidáme copyright footer
+      const buttons = clone.querySelector('.result-buttons');
+      if (buttons) {
+        buttons.remove();
+      }
+      
+      const footer = document.createElement('div');
+      footer.className = 'text-center mt-4 mb-2';
+      footer.innerHTML = '<p class="text-xs text-gray-500">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>';
+      clone.appendChild(footer);
+      
       container.appendChild(clone);
       document.body.appendChild(container);
       
+      // Upravíme styly pro export
+      Array.from(container.querySelectorAll('.result-item')).forEach(item => {
+        (item as HTMLElement).style.marginBottom = '16px';
+      });
+      
       const dataUrl = await domtoimage.toPng(container, {
         quality: 1.0,
-        bgcolor: '#ffffff',
-        style: {
-          margin: 0,
-          padding: 0
-        }
+        bgcolor: '#ffffff'
       });
       
       // Odstraníme dočasný kontejner
@@ -110,145 +122,88 @@ export function ResultsPage({ results, onReset, config, userAnswers = [] }: Resu
   
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md min-h-[600px] flex flex-col">
-      <div className="h-[100px] flex flex-col justify-center">
-        <h1 className="text-2xl font-bold text-center">Výsledky</h1>
-        
-        <p className="text-gray-600 text-center h-[40px] flex items-center justify-center">
-          Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
-        </p>
-      </div>
-      
-      {/* Skrytý div pro export - neviditelný v UI, ale používá se pro export */}
-      <div className="hidden">
-        <div ref={exportRef} className="bg-white" style="width: 520px;">
-          <div className="text-center mb-3">
-            <h2 className="text-2xl font-bold text-gray-800">Výsledky</h2>
-            <p className="text-sm text-gray-600">
-              Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
-            </p>
-          </div>
+      <div ref={exportRef} className="w-full">
+        <div className="h-[100px] flex flex-col justify-center">
+          <h1 className="text-2xl font-bold text-center">Výsledky</h1>
           
-          {results.slice(0, 5).map((result, index) => (
-            <div key={result.partyId} className="mb-3 last:mb-1">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 mr-2 w-8 h-8">
-                  <img 
-                    src={`images/party-logos/${result.partyId}.svg`}
-                    alt={`Logo ${result.partyName}`}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.currentTarget.src = 'images/party-logos/default.svg';
-                    }}
-                  />
-                </div>
-                <div className="flex-grow">
-                  <div className="flex justify-between mb-1">
-                    <div>
-                      <div className="font-medium">{index + 1}. {result.partyName}</div>
-                      <div className="text-xs text-gray-600 line-clamp-1 max-w-[280px]">
-                        {result.description || `${result.partyName} je politická strana`}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xl font-bold">
-                        {result.matchPercentage}%
-                      </span>
-                      <div className="text-xs text-gray-500">shoda</div>
-                    </div>
-                  </div>
-                  
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
-                    <div 
-                      className="h-full" 
-                      style={{ 
-                        width: `${result.matchPercentage}%`,
-                        backgroundColor: result.color || '#3B82F6'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-          
-          <div className="text-center mt-4 pt-2 border-t border-gray-100">
-            <p className="text-xs text-gray-500">Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
-          </div>
+          <p className="text-gray-600 text-center h-[40px] flex items-center justify-center">
+            Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
+          </p>
         </div>
-      </div>
-      
-      {/* Seznam všech výsledků - viditelný v UI */}
-      <div className="space-y-4 flex-grow overflow-auto">
-        {results.map((result, index) => (
-          <div 
-            key={result.partyId} 
-            className="border rounded-lg p-4 transition-colors hover:bg-gray-50"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 relative">
-                    <img 
-                      src={`images/party-logos/${result.partyId}.svg`}
-                      alt={`Logo ${result.partyName}`}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        // Fallback na výchozí logo, pokud konkrétní logo neexistuje
-                        e.currentTarget.src = 'images/party-logos/default.svg';
-                      }}
-                    />
+        
+        {/* Seznam výsledků - používá se pro zobrazení i export */}
+        <div className="space-y-4 flex-grow overflow-auto">
+          {results.map((result, index) => (
+            <div 
+              key={result.partyId} 
+              className="result-item border rounded-lg p-4 transition-colors hover:bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 relative">
+                      <img 
+                        src={`images/party-logos/${result.partyId}.svg`}
+                        alt={`Logo ${result.partyName}`}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          // Fallback na výchozí logo, pokud konkrétní logo neexistuje
+                          e.currentTarget.src = 'images/party-logos/default.svg';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{index + 1}. {result.partyName}</h3>
+                    {result.description && (
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.description}</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{index + 1}. {result.partyName}</h3>
-                  {result.description && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.description}</p>
-                  )}
+                
+                <div className="text-right">
+                  <span className="text-2xl font-bold">
+                    {result.matchPercentage}%
+                  </span>
+                  <div className="text-sm text-gray-500">shoda</div>
                 </div>
               </div>
               
-              <div className="text-right">
-                <span className="text-2xl font-bold">
-                  {result.matchPercentage}%
-                </span>
-                <div className="text-sm text-gray-500">shoda</div>
+              <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="h-2.5 rounded-full" 
+                  style={{ 
+                    width: `${result.matchPercentage}%`,
+                    backgroundColor: result.color || '#3B82F6'
+                  }}
+                ></div>
               </div>
             </div>
-            
-            <div className="mt-3 w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="h-2.5 rounded-full" 
-                style={{ 
-                  width: `${result.matchPercentage}%`,
-                  backgroundColor: result.color || '#3B82F6'
-                }}
-              ></div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       
-      <div className="mt-8 flex justify-center space-x-4">
-        <button
-          onClick={onReset}
-          className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-        >
-          Začít znovu
-        </button>
-        
-        <button
-          onClick={handleExportImage}
-          className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-        >
-          Exportovat jako obrázek
-        </button>
-        
-        <button
-          onClick={handleStartDemographicSurvey}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Demografický průzkum
-        </button>
+        <div className="mt-8 flex justify-center space-x-4 result-buttons">
+          <button
+            onClick={onReset}
+            className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+          >
+            Začít znovu
+          </button>
+          
+          <button
+            onClick={handleExportImage}
+            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            Exportovat jako obrázek
+          </button>
+          
+          <button
+            onClick={handleStartDemographicSurvey}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Demografický průzkum
+          </button>
+        </div>
       </div>
     </div>
   );
