@@ -44,17 +44,40 @@ export function ResultExport({ results, title = 'Moje výsledky volební kalkula
     <div className="mt-8">
       <div ref={exportRef} className="p-6 bg-white rounded-lg shadow-sm">
         <div className="text-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-          <p className="text-sm text-gray-500">Výsledky volební kalkulačky</p>
+          <h2 className="text-2xl font-bold text-gray-800">Výsledky</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Na základě vašich odpovědí jsme určili míru shody s jednotlivými politickými stranami.
+          </p>
         </div>
         
         {results.slice(0, 5).map((result, index) => (
-          <div key={result.partyId} className="mb-4 last:mb-0">
-            <div className="flex items-center justify-between mb-1">
+          <div key={result.partyId} className="mb-6 last:mb-0">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
-                <span className="text-lg font-medium">{index + 1}. {result.partyName}</span>
+                <div className="flex-shrink-0 mr-3">
+                  <div className="w-12 h-12 relative">
+                    <img 
+                      src={`images/party-logos/${result.partyId}.svg`}
+                      alt={`Logo ${result.partyName}`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback na výchozí logo, pokud konkrétní logo neexistuje
+                        e.currentTarget.src = 'images/party-logos/default.svg';
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-lg font-medium">{index + 1}. {result.partyName}</span>
+                  {result.description && (
+                    <p className="text-sm text-gray-600">{result.description.substring(0, 50)}...</p>
+                  )}
+                </div>
               </div>
-              <div className="font-bold text-lg">{result.matchPercentage}%</div>
+              <div className="text-right">
+                <span className="text-2xl font-bold">{result.matchPercentage}%</span>
+                <div className="text-sm text-gray-500">shoda</div>
+              </div>
             </div>
             
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -69,8 +92,8 @@ export function ResultExport({ results, title = 'Moje výsledky volební kalkula
           </div>
         ))}
         
-        <div className="text-center mt-6 text-xs text-gray-500">
-          <p>vytvořeno pomocí volebnikalkula.cz</p>
+        <div className="text-center mt-8 text-xs text-gray-500">
+          <p>Výsledky volební kalkulačky 2025 | © BORGIS, a.s.</p>
         </div>
       </div>
       
